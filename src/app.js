@@ -1,14 +1,13 @@
 const express = require("express");
+const { connectDB } = require("./config/database");
 
 const app = express();
 
-app.use("/profile", (req, res) => {
-  res.send("Hello from DevTinder Profile Team...");
-});
-
-app.use("/", (req, res) => {
-  res.send("Hello from DevTinder Team....");
-});
-app.listen(7777, () =>
-  console.log("Express is successfully running in port 7777")
-);
+connectDB()
+  .then(() => {
+    console.log("Connection established successfully...");
+    app.listen(7777, () =>
+      console.log("Express is successfully running in port 7777")
+    );
+  })
+  .catch((err) => console.log(err));
