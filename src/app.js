@@ -2,14 +2,39 @@ const express = require("express");
 const { default: mongoose } = require("mongoose");
 const { connectDB } = require("./config/database");
 const User = require("./models/user");
+const { signupDataValidation } = require("./utils/validation");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
 app.use(express.json());
 
-app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
+app.post("/login", async (req, res) => {
   try {
+    const { emailId, password } = req.body;
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) res.send("Valid credentials");
+    else throw new Error("Invalid credentials");
+  } catch (err) {
+    res.status(400).send("Something went wrong!!! " + err.message);
+  }
+});
+
+app.post("/signup", async (req, res) => {
+  const { firstName, lastName, emailId, password } = req.body;
+  try {
+    signupDataValidation(req);
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
     await user.save();
     res.send("User added successfully");
   } catch (err) {
