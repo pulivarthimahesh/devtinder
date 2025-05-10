@@ -4,10 +4,14 @@ const { connectDB } = require("./config/database");
 const User = require("./models/user");
 const { signupDataValidation } = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middleware/auth");
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/login", async (req, res) => {
   try {
@@ -17,8 +21,13 @@ app.post("/login", async (req, res) => {
       throw new Error("Invalid credentials");
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (isPasswordValid) res.send("Valid credentials");
-    else throw new Error("Invalid credentials");
+    if (isPasswordValid) {
+      var token = jwt.sign({ userId: user._id }, "Maahi@1234", {
+        expiresIn: "1h",
+      });
+      res.cookie("token", token);
+      res.send("Valid credentials");
+    } else throw new Error("Invalid credentials");
   } catch (err) {
     res.status(400).send("Something went wrong!!! " + err.message);
   }
@@ -39,6 +48,14 @@ app.post("/signup", async (req, res) => {
     res.send("User added successfully");
   } catch (err) {
     res.status(400).send("Something went wrong !!! " + err.message);
+  }
+});
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    res.send(req.user);
+  } catch (err) {
+    res.status(400).send("Something went wrong!!! " + err.message);
   }
 });
 
