@@ -19,7 +19,7 @@ router.post("/login", async (req, res) => {
       // });
       var token = user.getJWT();
       res.cookie("token", token);
-      res.send("Valid credentials");
+      res.send("User logged in successfully!!!");
     } else throw new Error("Invalid credentials");
   } catch (err) {
     res.status(400).send("Something went wrong!!! " + err.message);
@@ -42,6 +42,12 @@ router.post("/signup", async (req, res) => {
   } catch (err) {
     res.status(400).send("Something went wrong !!! " + err.message);
   }
+});
+
+router.post("/logout", (req, res) => {
+  res
+    .cookie("token", null, { expiresIn: new Date(Date.now()) })
+    .send("Log out successfull!!!");
 });
 
 module.exports = router;
